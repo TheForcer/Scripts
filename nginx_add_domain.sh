@@ -5,7 +5,14 @@ domain=$1
 webroot="/var/www/$domain/html"
 block="/etc/nginx/sites-available/$domain"
 
-#echo "vhost.conf-Generator für NGINX"
+function make_directory ()
+{
+  # Erstellung des Dokumentverzeichnisses
+  sudo mkdir -p $webroot
+  # Benutzerzuweisung
+  sudo chown -R $USER:$USER $webroot
+}
+
 if [ $# -eq 0 ]; then
   # $'<text>' erlaubt ANSI C Encoding wie '\n'
   echo "Error: Domain als Argument fehlt." 2>&1
@@ -22,8 +29,8 @@ else
       #sudo service nginx enable
       #sudo service nginx start
     else
-      #copyconfig()
-      echo "Hier wird dann installiert"
+      echo $'\nErstelle webroot'
+      make_directory
     fi
   fi
 fi
