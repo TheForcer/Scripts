@@ -1,5 +1,5 @@
-# Scripts
-Collection of various scripts.
+# nginx-conf-script
+nginx script for automating conf creation.
 
 ___
 # License
