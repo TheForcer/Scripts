@@ -54,7 +54,7 @@ case $OPTION in
 			RET=$(curl  -s -X POST -d "$XMLDATA" "$APIHOST" --header "Content-Type:text/xml")
 			if grep -q "Command completed successfully" <<< "$RET";
 			then
-				echo "Finished creating the DNS records! Exiting now..."
+				echo -e "${CGREEN}Finished creating the DNS records! Exiting now...${CEND}"
 			exit
 			fi
 		fi
@@ -68,6 +68,13 @@ case $OPTION in
 			echo -e "${CRED}Sorry, for this module you need to run the script as root/sudo${CEND}"
 			exit 1
 		fi
+		RET0=$(ls /root/.acme.sh)
+		RET1=$(echo $?)
+		if ! grep -q "0" <<< "$RET1"; 
+		then
+			echo -e "${CRED}It seems that you do not have the acme.sh client installed. Please complete step 3 in the script first.${CEND}"
+			exit 1
+		fi
 		read -p "Please enter the new complete FQDN (eg. test.example.com): " FQDN
 		# create strings for the new domain
 		DOMAIN=$(echo $FQDN | egrep -o '([a-z0-9]+\.[a-z0-9]+)$')
@@ -76,13 +83,22 @@ case $OPTION in
 		ROOTDIR="/var/www/$FQDN/html"
 		CONF="/etc/nginx/sites-available/$FQDN"
 		#create stuff
-		#mkdir -p $ROOTDIR
-		#chown -R $NGINXUSER:$NGINXUSER $ROOTDIR
+		mkdir -p $ROOTDIR
+		chown -R $NGINXUSER:$NGINXUSER $ROOTDIR
 		# create NGINX block
-		#cat nginx_default.conf | sed "s/%FQDN%/$FQDN/g;s/%DOMAIN%/$DOMAIN/g;s!%ROOTDIR%!$ROOTDIR!g" > $CONF
-		#ln -s $CONF /etc/nginx/sites-enabled/$FQDN
-		#nginx -t && sudo nginx -s reload
-		echo "Finished creating the new NGINX vhost. NGINX has been reloaded as well. Exiting now..."
+		cat nginx_default.conf | sed "s/%FQDN%/$FQDN/g;s/%DOMAIN%/$DOMAIN/g;s!%ROOTDIR%!$ROOTDIR!g" > $CONF
+		ln -s $CONF /etc/nginx/sites-enabled/$FQDN
+		nginx -t
+		RET=$(echo $?)
+		if ! grep -q "0" <<< "$RET";
+		then
+			echo -e "${CRED}Something is wrong with the NGINX configuration. Please double-check your config in /etc/nginx.${CEND}"
+			rm -rf $ROOTDIR && rm -f $CONF $$ rm -f /etc/nginx/sites-enabled/$FQDN
+			exit
+		else
+			nginx -s reload
+			echo -e "${CGREEN}Finished creating the new NGINX vhost. NGINX has been reloaded as well. Exiting now...${CEND}"
+		fi
 	exit
 	;;
 	
@@ -154,6 +170,7 @@ case $OPTION in
 		wget https://raw.githubusercontent.com/Angristan/nginx-autoinstall/master/nginx-autoinstall.sh
 		chmod +x nginx-autoinstall.sh
 		sudo bash nginx-autoinstall.sh
+		sed -i "s/\.conf//g;" /etc/nginx/nginx.conf
 	exit
 	;;	
 	
