@@ -9,9 +9,16 @@ IPV6=""											# Static IP of your server v6
 NGINXUSER="www-data"						    # User who runs the NGINX process
 ###################################################################################
 
+# Colors ##########################################################################
+CSI="\033["
+CEND="${CSI}0m"
+CRED="${CSI}1;31m"
+CGREEN="${CSI}1;32m"
+###################################################################################
+
 clear
 echo ""
-echo "Welcome to the INWX+NGINX script!"
+echo -e "${CGREEN}Welcome to the INWX+NGINX script!${CEND}"
 echo ""
 echo "What do you want to do?"
 echo "   1) Add a new subdomain to INWX"
@@ -39,7 +46,7 @@ case $OPTION in
 		# check success of record creation
 		if ! grep -q "Command completed successfully" <<< "$RET";
 		then
-			echo "Something went wrong with the record creation. Please double-check your credentials and the FQDN you entered."
+			echo -e "${CRED}Something went wrong with the record creation. Please double-check your credentials and the FQDN you entered.${CEND}"
 			exit
 		else
 			echo "Your new A record has been successfully created. Creating AAAA record now..."
@@ -91,14 +98,26 @@ case $OPTION in
 		export INWX_User=$USERNAME && export INWX_Password=$PASSWORD
 		# download & install acme.sh
 		cd /root/
+		echo -e "${CGREEN}Downloading acme.sh ...${CEND}"
 		git clone https://github.com/Neilpang/acme.sh.git
+		echo -e "${CGREEN}Installing acme.sh ...${CEND}"
 		cd ./acme.sh && ./acme.sh --install
 		# issue cert
-		echo "The following process takes about 2+ minutes, as acme.sh has to wait before verifying the created domain entries. Stand by..."
-		./acme.sh --issue --dns dns_inwx -d $DOMAIN -d *.$DOMAIN --keylength ec-384
-		if ! grep -q "Command completed successfully" <<< "$RET"; #TODO
+		echo -e "${CGREEN}Requesting certificate ...${CEND}"
+		echo "The following process takes about 2+ minutes, as acme.sh has to wait before verifying the created domain entries. Please stand by..."
+		RET=$(./acme.sh --issue --dns dns_inwx -d $DOMAIN -d *.$DOMAIN --keylength ec-384)
+		if ! grep -q "Cert success." <<< "$RET";
 		then
-			echo "Finished creating the DNS records! Exiting now..."
+			echo -e "${CRED}Something went wrong with the certificate creation. Please double-check your credentials and the domain you entered.${CEND}"
+			exit
+		else
+			echo -e "${CGREEN}Your wildcard certificate has been successfully created. You will find your files here:${CEND}"
+			echo ""
+			echo -e "	Certificate:  /root/.acme.sh/${DOMAIN}_ecc/$DOMAIN.cer"
+			echo -e "	Private Key:  /root/.acme.sh/${DOMAIN}_ecc/$DOMAIN.key"
+			echo -e "	Intermediate Certificate:  /root/.acme.sh/${DOMAIN}_ecc/ca.cer"
+			echo -e "	Full Chain Certificate:  /root/.acme.sh/${DOMAIN}_ecc/fullchain.cer"
+			echo ""
 		fi
 	exit
 	;;
@@ -112,8 +131,22 @@ case $OPTION in
 		fi
 		read -p "Please enter the domain of the certificate you want to renew (eg. example.com): " DOMAIN
 		cd /root/.acme.sh
-		./acme.sh --renew -d $DOMAIN -d *.$DOMAIN --force --ecc
-		# output TODO
+		echo -e "${CGREEN}Requesting certificate ...${CEND}"
+		echo "The following process can take about 2+ minutes, as acme.sh has to wait before verifying the newly created domain entries. Please stand by..."
+		RET=$(./acme.sh --renew -d $DOMAIN -d *.$DOMAIN --force --ecc)
+		if ! grep -q "Cert success." <<< "$RET"; #TODO
+		then
+			echo -e "${CRED}Something went wrong with the certificate renewal. Please double-check your credentials and the domain you entered.${CEND}"
+			exit
+		else
+			echo -e "${CGREEN}Your wildcard certificate has been successfully renewed. You will find your files here:${CEND}"
+			echo ""
+			echo -e "	Certificate:  /root/.acme.sh/${DOMAIN}_ecc/$DOMAIN.cer"
+			echo -e "	Private Key:  /root/.acme.sh/${DOMAIN}_ecc/$DOMAIN.key"
+			echo -e "	Intermediate Certificate:  /root/.acme.sh/${DOMAIN}_ecc/ca.cer"
+			echo -e "	Full Chain Certificate:  /root/.acme.sh/${DOMAIN}_ecc/fullchain.cer"
+			echo ""
+		fi
 	exit
 	;;	
 	
