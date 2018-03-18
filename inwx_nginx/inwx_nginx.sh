@@ -1,12 +1,12 @@
 #!/bin/bash
 
-# Configuration ###################################################################
-USERNAME=""                          	    	# Your username at INWX
-PASSWORD=""		  								# Your password at INWX
-APIHOST="https://api.domrobot.com/xmlrpc/" 	    # API URL from inwx.de
-IPV4=""											# Static IP of your server v4
-IPV6=""											# Static IP of your server v6
-NGINXUSER="www-data"						    # User who runs the NGINX process
+# Configuration INWX credentials / Server IPs #####################################
+USERNAME=""
+PASSWORD=""
+APIHOST="https://api.domrobot.com/xmlrpc/"
+IPV4=""
+IPV6=""
+NGINXUSER="www-data"
 ###################################################################################
 
 # Colors ##########################################################################
