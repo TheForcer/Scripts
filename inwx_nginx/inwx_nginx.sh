@@ -22,20 +22,22 @@ echo -e "${CGREEN}Welcome to the INWX+NGINX script!${CEND}"
 echo ""
 echo "What do you want to do?"
 echo "   1) Add a new subdomain to INWX"
-echo "   2) Add a new subdomain/vhost to NGINX"
-echo "   3) Install a LetsEncrypt ECC Wildcard certificate via acme.sh"
-echo "   4) Force LetsEncrypt ECC Wildcard certificate renewal"
-echo "   5) Install / Update / Remove NGINX"
+echo "   2) Remove a subdomain from INWX (WIP)"
+echo "   3) Add a new NGINX vhost/subdomain"
+echo "   4) Remove a NGINX vhost/subdomain (WIP)"
+echo "   5) Install a LetsEncrypt ECC Wildcard certificate via acme.sh"
+echo "   6) Force LetsEncrypt ECC Wildcard certificate renewal"
+echo "   7) Install / Update / Remove NGINX"
 echo "   9) Exit"
 echo ""
 
-while [[ $OPTION !=  "1" && $OPTION !=  "2" && $OPTION !=  "3" && $OPTION !=  "4" && $OPTION !=  "5" && $OPTION !=  "9" ]]; 
+while [[ $OPTION !=  "1" && $OPTION !=  "2" && $OPTION !=  "3" && $OPTION !=  "4" && $OPTION !=  "5" && $OPTION !=  "6" && $OPTION !=  "7" && $OPTION !=  "9" ]]; 
 do
-	read -p "Select an option [1-x]: " OPTION
+	read -p "Select an option [1-9]: " OPTION
 done
 
 case $OPTION in
-	1)# add subdomain
+	1)# add INWX subdomain
 		read -p "Please enter the new complete FQDN (eg. test.example.com): " FQDN
 		# create strings for the new domain
 		DOMAIN=$(echo $FQDN | egrep -o '([a-z0-9]+\.[a-z0-9]+)$')
@@ -60,8 +62,13 @@ case $OPTION in
 		fi
 	exit
     ;;
-	
-	2)# add vhost
+
+	2)# remove INWX subdomain
+		echo -e "${CRED}This feature is not finished yet. Exiting...${CEND}"
+		exit
+	;;
+
+	3)# add vhost
 		# root user check
 		if [[ "$EUID" -ne 0 ]] 
 		then
@@ -101,8 +108,13 @@ case $OPTION in
 		fi
 	exit
 	;;
-	
-	3)# install acme.sh
+
+	4)# remove vhost
+		echo -e "${CRED}This feature is not finished yet. Exiting...${CEND}"
+		exit
+	;;
+
+	5)# install acme.sh
 		# root user check
 		if [[ "$EUID" -ne 0 ]] 
 		then
@@ -138,7 +150,7 @@ case $OPTION in
 	exit
 	;;
 	
-	4)# force certificate renewal
+	6)# force certificate renewal
 		# root user check
 		if [[ "$EUID" -ne 0 ]] 
 		then
@@ -166,7 +178,7 @@ case $OPTION in
 	exit
 	;;	
 	
-	5)# nginx installer script
+	7)# nginx installer script
 		wget https://raw.githubusercontent.com/Angristan/nginx-autoinstall/master/nginx-autoinstall.sh
 		chmod +x nginx-autoinstall.sh
 		sudo bash nginx-autoinstall.sh
