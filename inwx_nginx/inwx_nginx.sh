@@ -22,9 +22,9 @@ echo -e "${CGREEN}Welcome to the INWX+NGINX script!${CEND}"
 echo ""
 echo "What do you want to do?"
 echo "   1) Add a new subdomain to INWX"
-echo "   2) Remove a subdomain from INWX (WIP)"
+echo "   2) Remove a subdomain from INWX"
 echo "   3) Add a new NGINX vhost/subdomain"
-echo "   4) Remove a NGINX vhost/subdomain (WIP)"
+echo "   4) Remove a NGINX vhost/subdomain"
 echo "   5) Install a LetsEncrypt ECC Wildcard certificate via acme.sh"
 echo "   6) Force LetsEncrypt ECC Wildcard certificate renewal"
 echo "   7) Install / Update / Remove NGINX"
@@ -64,8 +64,29 @@ case $OPTION in
     ;;
 
 	2)# remove INWX subdomain
-		echo -e "${CRED}This feature is not finished yet. Exiting...${CEND}"
-		exit
+		read -p "Please enter the FQDN you want to remove (eg. test.example.com): " FQDN
+		# create strings for the new domain
+		DOMAIN=$(echo $FQDN | egrep -o '([a-z0-9]+\.[a-z0-9]+)$')
+		SUBDOMAIN=$(echo $FQDN | egrep -o '^[a-z0-9]+')
+		# create the A record via XML POST
+		XMLDATA=$(cat getInfo.api | sed "s/%PASSWD%/$PASSWORD/g;s/%USER%/$USERNAME/g;s/%DOMAIN%/$DOMAIN/g;s/%SUBDOMAIN%/$SUBDOMAIN/g;")
+		RET=$(curl  -s -X POST -d "$XMLDATA" "$APIHOST" --header "Content-Type:text/xml")
+		# check success of domain lookup
+		if ! grep -q "Command completed successfully" <<< "$RET";
+		then
+			echo -e "${CRED}Something went wrong with the domain lookup. Please double-check your credentials and the FQDN you entered.${CEND}"
+			exit
+		else
+			IDS=($(echo $RET | egrep -o '<name>id</name><value><int>[0-9]+' | egrep -o '[0-9]+'))
+			for id in ${IDS[*]}
+			do
+				echo "Deleting record $id ..."
+				XMLDATA=$(cat deleteRecord.api | sed "s/%PASSWD%/$PASSWORD/g;s/%USER%/$USERNAME/g;s/%ID%/$id/g;")
+				RET=$(curl  -s -X POST -d "$XMLDATA" "$APIHOST" --header "Content-Type:text/xml")
+			done
+			echo -e "${CGREEN}Finished removing the INWX records. Exiting now...${CEND}"	
+		fi
+	exit
 	;;
 
 	3)# add vhost
@@ -79,7 +100,7 @@ case $OPTION in
 		RET1=$(echo $?)
 		if ! grep -q "0" <<< "$RET1"; 
 		then
-			echo -e "${CRED}It seems that you do not have the acme.sh client installed. Please complete step 3 in the script first.${CEND}"
+			echo -e "${CRED}It seems that you do not have the acme.sh client installed. Please complete step 5 in the script first.${CEND}"
 			exit 1
 		fi
 		read -p "Please enter the new complete FQDN (eg. test.example.com): " FQDN
@@ -100,7 +121,7 @@ case $OPTION in
 		if ! grep -q "0" <<< "$RET";
 		then
 			echo -e "${CRED}Something is wrong with the NGINX configuration. Please double-check your config in /etc/nginx.${CEND}"
-			rm -rf $ROOTDIR && rm -f $CONF $$ rm -f /etc/nginx/sites-enabled/$FQDN
+			rm -rf /var/www/$FQDN && rm -f $CONF $$ rm -f /etc/nginx/sites-enabled/$FQDN
 			exit
 		else
 			nginx -s reload
@@ -110,7 +131,17 @@ case $OPTION in
 	;;
 
 	4)# remove vhost
-		echo -e "${CRED}This feature is not finished yet. Exiting...${CEND}"
+		# root user check
+		if [[ "$EUID" -ne 0 ]] 
+		then
+			echo -e "${CRED}Sorry, for this module you need to run the script as root/sudo${CEND}"
+			exit 1
+		fi
+		echo -e "${CRED}WARNING: This will delete the NGINX config files as well as the content of the FQDN's root directory.${CEND}"
+		read -p "Please enter the FQDN you want to remove (eg. test.example.com): " FQDN
+		rm -rf /var/www/$FQDN && rm -f /etc/nginx/sites-available/$FQDN $$ rm -f /etc/nginx/sites-enabled/$FQDN
+		nginx -s reload
+		echo -e "${CGREEN}Finished removing the subdomain. Exiting...${CEND}"
 		exit
 	;;
 
@@ -179,7 +210,7 @@ case $OPTION in
 	;;	
 	
 	7)# nginx installer script
-		wget https://raw.githubusercontent.com/Angristan/nginx-autoinstall/master/nginx-autoinstall.sh
+		wget -N https://raw.githubusercontent.com/Angristan/nginx-autoinstall/master/nginx-autoinstall.sh
 		chmod +x nginx-autoinstall.sh
 		sudo bash nginx-autoinstall.sh
 		sed -i "s/\.conf//g;" /etc/nginx/nginx.conf
