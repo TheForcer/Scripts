@@ -9,7 +9,7 @@ Clone the repository, make the script itself executable and enter your INWX/serv
 
 ```
 git clone https://github.com/theforcer/scripts
-cd /scripts/inwx_nginx
+cd scripts/inwx_nginx
 chmod +x inwx_nginx.sh
 <Open the script with an editor of your choice - Edit the configuration section>
 ./inwx_nginx.sh
