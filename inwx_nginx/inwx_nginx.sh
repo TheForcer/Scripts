@@ -40,7 +40,7 @@ case $OPTION in
 	1)# add INWX subdomain
 		read -p "Please enter the new complete FQDN (eg. test.example.com): " FQDN
 		# create strings for the new domain
-		DOMAIN=$(echo $FQDN | egrep -o '([a-z0-9]+\.[a-z0-9]+)$')
+		DOMAIN=$(echo $FQDN | egrep -o '([-\_0-9a-z]+\.[a-z0-9]+)$')
 		SUBDOMAIN=$(echo $FQDN | egrep -o '^[a-z0-9]+')
 		# create the A record via XML POST
 		XMLDATA=$(cat createA.api | sed "s/%PASSWD%/$PASSWORD/g;s/%USER%/$USERNAME/g;s/%DOMAIN%/$DOMAIN/g;s/%SUBDOMAIN%/$SUBDOMAIN/g;s/%IPV4%/$IPV4/g;")
@@ -66,7 +66,7 @@ case $OPTION in
 	2)# remove INWX subdomain
 		read -p "Please enter the FQDN you want to remove (eg. test.example.com): " FQDN
 		# create strings for the new domain
-		DOMAIN=$(echo $FQDN | egrep -o '([a-z0-9]+\.[a-z0-9]+)$')
+		DOMAIN=$(echo $FQDN | egrep -o '([-\_0-9a-z]+\.[a-z0-9]+)$')
 		SUBDOMAIN=$(echo $FQDN | egrep -o '^[a-z0-9]+')
 		# create the A record via XML POST
 		XMLDATA=$(cat getInfo.api | sed "s/%PASSWD%/$PASSWORD/g;s/%USER%/$USERNAME/g;s/%DOMAIN%/$DOMAIN/g;s/%SUBDOMAIN%/$SUBDOMAIN/g;")
@@ -105,7 +105,7 @@ case $OPTION in
 		fi
 		read -p "Please enter the new complete FQDN (eg. test.example.com): " FQDN
 		# create strings for the new domain
-		DOMAIN=$(echo $FQDN | egrep -o '([a-z0-9]+\.[a-z0-9]+)$')
+		DOMAIN=$(echo $FQDN | egrep -o '([-\_0-9a-z]+\.[a-z0-9]+)$')
 		SUBDOMAIN=$(echo $FQDN | egrep -o '^[a-z0-9]+')
 		# define location variables
 		ROOTDIR="/var/www/$FQDN/html"
