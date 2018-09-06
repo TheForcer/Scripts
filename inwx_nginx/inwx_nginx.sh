@@ -215,6 +215,45 @@ case $OPTION in
 		sudo bash nginx-autoinstall.sh
 		sed -i "s/\.conf//g;" /etc/nginx/nginx.conf
 	exit
+	;;
+
+	8)# add proxy vhost
+		# root user check
+		if [[ "$EUID" -ne 0 ]] 
+		then
+			echo -e "${CRED}Sorry, for this module you need to run the script as root/sudo${CEND}"
+			exit 1
+		fi
+		RET0=$(ls /root/.acme.sh)
+		RET1=$(echo $?)
+		if ! grep -q "0" <<< "$RET1"; 
+		then
+			echo -e "${CRED}It seems that you do not have the acme.sh client installed. Please complete step 5 in the script first.${CEND}"
+			exit 1
+		fi
+		read -p "Please enter the new complete FQDN (eg. test.example.com): " FQDN
+		read -p "On which port is the application listening? (eg. 8080): " PORT
+		read -p "What is the name of the application (for nginx logs): " APPNAME
+		# create strings for the new domain
+		DOMAIN=$(echo $FQDN | egrep -o '([-\_0-9a-z]+\.[a-z0-9]+)$')
+		SUBDOMAIN=$(echo $FQDN | egrep -o '^[a-z0-9]+')
+		# define location variables
+		CONF="/etc/nginx/sites-available/$FQDN"
+		# create NGINX block
+		cat nginx_proxy.conf | sed "s/%FQDN%/$FQDN/g;s/%DOMAIN%/$DOMAIN/g;s!%PORT%!$PORT!g;s!%APPNAME%!$APPNAME!g" > $CONF
+		ln -s $CONF /etc/nginx/sites-enabled/$FQDN
+		nginx -t
+		RET=$(echo $?)
+		if ! grep -q "0" <<< "$RET";
+		then
+			echo -e "${CRED}Something is wrong with the NGINX configuration. Please double-check your config in /etc/nginx.${CEND}"
+			rm -f $CONF $$ rm -f /etc/nginx/sites-enabled/$FQDN
+			exit
+		else
+			nginx -s reload
+			echo -e "${CGREEN}Finished creating the new NGINX vhost. NGINX has been reloaded as well. Exiting now...${CEND}"
+		fi
+	exit
 	;;	
 	
 	9)
