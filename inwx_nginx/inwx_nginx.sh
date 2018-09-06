@@ -28,10 +28,11 @@ echo "   4) Remove a NGINX vhost/subdomain"
 echo "   5) Install a LetsEncrypt ECC Wildcard certificate via acme.sh"
 echo "   6) Force LetsEncrypt ECC Wildcard certificate renewal"
 echo "   7) Install / Update / Remove NGINX"
+echo "   8) Add a new NGINX proxy vhost/subdomain"
 echo "   9) Exit"
 echo ""
 
-while [[ $OPTION !=  "1" && $OPTION !=  "2" && $OPTION !=  "3" && $OPTION !=  "4" && $OPTION !=  "5" && $OPTION !=  "6" && $OPTION !=  "7" && $OPTION !=  "9" ]]; 
+while [[ $OPTION !=  "1" && $OPTION !=  "2" && $OPTION !=  "3" && $OPTION !=  "4" && $OPTION !=  "5" && $OPTION !=  "6" && $OPTION !=  "7" && $OPTION !=  "8" && $OPTION !=  "9" ]]; 
 do
 	read -p "Select an option [1-9]: " OPTION
 done
