@@ -76,12 +76,12 @@ case $OPTION in
 			exit 1
 		fi
 		sudo groupadd docker
-    sudo usermod -aG docker $USER
-    echo -e "${CGREEN}Finished adding yourself to the docker group. Exiting now...${CEND}"
+        sudo usermod -aG docker $USER
+        echo -e "${CGREEN}Finished adding yourself to the docker group. Exiting now...${CEND}"
 	exit
 	;;
 	
 	4)
-		exit
+	exit
 	;;
 esac
