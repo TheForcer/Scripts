@@ -35,8 +35,9 @@ docker() {
         read -p "Do you really want to completely reset docker (remove all images, containers and volumes) [Y/n]? " -n 1 -r
         if [[ $REPLY =~ ^[Yy]$ ]]
         then
-            command docker system prune -af && command docker volume prune -f  
-        fi   
+            printf "\n"
+            command docker system prune -af && command docker volume prune -f
+        fi
     else
         command docker "$@"
     fi
