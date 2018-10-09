@@ -7,6 +7,9 @@ The main purpose of this script is to automate the creation of nginx-vhost-files
 ## docker
 The `installDocker.sh` script makes installing docker and docker-compose easy. Additionally you can add yourself to the docker group (for easy container management) even if this might be a potential security risk. Currently the script is tested with Ubuntu 18.04+.
 
+## bashrc
+The `.bashrc` file contains useful shortcuts for different daily tasks like looking at the disk usage with `df -kTh` in a human-readable format and removing files with `rm -i` to prevent accidentally removing of files. Also the `docker` function has been overwritten so that you can use `docker containers` like `docker images` instead of `docker container ls`.
+
 ### Usage
 Clone the repository, make the script itself executable and enter your INWX/server details. Voila, you are ready to go!
 
