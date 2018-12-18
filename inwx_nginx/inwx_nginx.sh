@@ -41,8 +41,8 @@ done
 
 # General functions ###############################################################
 function domainRegex {
-	DOMAIN=$(echo $1 | egrep -o '([-\_0-9a-z]+\.[a-z0-9]+)$')
-	SUBDOMAIN=$(echo $1 | egrep -o '^[a-z0-9]+')
+	DOMAIN=$(echo $FQDN | egrep -o '([-\_0-9a-z]+\.[a-z0-9]+)$')
+	SUBDOMAIN=$(echo $FQDN | egrep -o '^[a-z0-9]+')
 }
 
 function rootCheck {
@@ -54,7 +54,7 @@ function rootCheck {
 }
 
 function createRecords {
-	XMLDATA=$(cat createA.api | sed "s/%PASSWD%/$PASSWORD/g;s/%USER%/$USERNAME/g;s/%DOMAIN%/$DOMAIN/g;s/%SUBDOMAIN%/$SUBDOMAIN/g;s/%IPV4%/$IPV4/g;")
+	XMLDATA=$(curl -s -N https://raw.githubusercontent.com/TheForcer/Scripts/master/inwx_nginx/createA.api | sed "s/%PASSWD%/$PASSWORD/g;s/%USER%/$USERNAME/g;s/%DOMAIN%/$DOMAIN/g;s/%SUBDOMAIN%/$SUBDOMAIN/g;s/%IPV4%/$IPV4/g;")
 	RET=$(curl  -s -X POST -d "$XMLDATA" "$APIHOST" --header "Content-Type:text/xml")
 	# check success of record creation
 	if ! grep -q "Command completed successfully" <<< "$RET";
@@ -63,7 +63,7 @@ function createRecords {
 		exit 1
 	else
 		echo "Your new A record has been successfully created. Creating AAAA record now..."
-		XMLDATA=$(cat createAAAA.api | sed "s/%PASSWD%/$PASSWORD/g;s/%USER%/$USERNAME/g;s/%DOMAIN%/$DOMAIN/g;s/%SUBDOMAIN%/$SUBDOMAIN/g;s/%IPV6%/$IPV6/g;")
+		XMLDATA=$(curl -s -N https://raw.githubusercontent.com/TheForcer/Scripts/master/inwx_nginx/createAAAA.api | sed "s/%PASSWD%/$PASSWORD/g;s/%USER%/$USERNAME/g;s/%DOMAIN%/$DOMAIN/g;s/%SUBDOMAIN%/$SUBDOMAIN/g;s/%IPV6%/$IPV6/g;")
 		RET=$(curl  -s -X POST -d "$XMLDATA" "$APIHOST" --header "Content-Type:text/xml")
 		if grep -q "Command completed successfully" <<< "$RET";
 		then
@@ -74,7 +74,7 @@ function createRecords {
 }
 
 function deleteRecords {
-	XMLDATA=$(cat getInfo.api | sed "s/%PASSWD%/$PASSWORD/g;s/%USER%/$USERNAME/g;s/%DOMAIN%/$DOMAIN/g;s/%SUBDOMAIN%/$SUBDOMAIN/g;")
+	XMLDATA=$(curl -s -N https://raw.githubusercontent.com/TheForcer/Scripts/master/inwx_nginx/getInfo.api | sed "s/%PASSWD%/$PASSWORD/g;s/%USER%/$USERNAME/g;s/%DOMAIN%/$DOMAIN/g;s/%SUBDOMAIN%/$SUBDOMAIN/g;")
 	RET=$(curl  -s -X POST -d "$XMLDATA" "$APIHOST" --header "Content-Type:text/xml")
 	# check success of domain lookup
 	if ! grep -q "Command completed successfully" <<< "$RET";
@@ -86,7 +86,7 @@ function deleteRecords {
 		for id in ${IDS[*]}
 		do
 			echo "Deleting record $id ..."
-			XMLDATA=$(cat deleteRecord.api | sed "s/%PASSWD%/$PASSWORD/g;s/%USER%/$USERNAME/g;s/%ID%/$id/g;")
+			XMLDATA=$(curl -s -N https://raw.githubusercontent.com/TheForcer/Scripts/master/inwx_nginx/deleteRecord.api | sed "s/%PASSWD%/$PASSWORD/g;s/%USER%/$USERNAME/g;s/%ID%/$id/g;")
 			RET=$(curl  -s -X POST -d "$XMLDATA" "$APIHOST" --header "Content-Type:text/xml")
 		done
 		echo -e "${CGREEN}Finished removing the INWX records. Exiting now...${CEND}"	
@@ -100,7 +100,7 @@ function createVhost {
 	mkdir -p $ROOTDIR
 	chown -R $NGINXUSER:$NGINXUSER $ROOTDIR
 	# create NGINX block
-	cat nginx_default.conf | sed "s/%FQDN%/$FQDN/g;s/%DOMAIN%/$DOMAIN/g;s!%ROOTDIR%!$ROOTDIR!g" > $CONF
+	curl -s -N https://raw.githubusercontent.com/TheForcer/Scripts/master/inwx_nginx/nginx_default.conf | sed "s/%FQDN%/$FQDN/g;s/%DOMAIN%/$DOMAIN/g;s!%ROOTDIR%!$ROOTDIR!g" > $CONF
 	ln -s $CONF /etc/nginx/sites-enabled/$FQDN
 	if ! nginx -t
 	then
@@ -122,7 +122,7 @@ function deleteVhost {
 
 function createProxyVhost {
 	CONF="/etc/nginx/sites-available/$FQDN"
-	cat nginx_proxy.conf | sed "s/%FQDN%/$FQDN/g;s/%DOMAIN%/$DOMAIN/g;s!%PORT%!$PORT!g;s!%APPNAME%!$APPNAME!g" > $CONF
+	curl -s -N https://raw.githubusercontent.com/TheForcer/Scripts/master/inwx_nginx/nginx_proxy.conf | sed "s/%FQDN%/$FQDN/g;s/%DOMAIN%/$DOMAIN/g;s!%PORT%!$PORT!g;s!%APPNAME%!$APPNAME!g" > $CONF
 	ln -s $CONF /etc/nginx/sites-enabled/$FQDN
 	if ! nginx -t
 	then
@@ -207,14 +207,14 @@ function forceRenewal {
 case $OPTION in
 	1)  # add INWX subdomain
 		read -p "Please enter the new complete FQDN (eg. test.example.com): " FQDN
-		domainRegex $FQDN
+		domainRegex
 		createRecords
 	exit
     ;;
 
 	2)  # remove INWX subdomain
 		read -p "Please enter the FQDN you want to remove (eg. test.example.com): " FQDN
-		domainRegex $FQDN
+		domainRegex
 		deleteRecords
 	exit
 	;;
@@ -227,7 +227,7 @@ case $OPTION in
 			exit 1
 		fi
 		read -p "Please enter the new complete FQDN (eg. test.example.com): " FQDN
-		domainRegex $FQDN
+		domainRegex
 		createVhost
 	exit
 	;;
