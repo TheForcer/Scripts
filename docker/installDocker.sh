@@ -32,7 +32,7 @@ case $OPTION in
 			exit 1
         fi
         # install required dependencies
-        sudo apt-get -y install apt-transport-https ca-certificates curl software-properties-common
+        sudo apt-get -y install apt-transport-https ca-certificates curl gnupg-agent software-properties-common
         # dowload docker and add the gpg key
         curl -fsSL https://download.docker.com/linux/ubuntu/gpg | sudo apt-key add -
         sudo apt-key fingerprint 0EBFCD88
@@ -42,7 +42,7 @@ case $OPTION in
             $(lsb_release -cs) stable"
         # update sources and install docker-ce
         sudo apt-get update
-        sudo apt-get -y install docker-ce
+        sudo apt-get -y install docker-ce docker-ce-cli containerd.io
         # enable docker at system start
         sudo systemctl enable docker
         echo -e "${CGREEN}Finished installing docker. Exiting now...${CEND}"
@@ -57,12 +57,12 @@ case $OPTION in
 			exit 1
 		fi
         # download binary and make it executable
-        sudo curl -L https://github.com/docker/compose/releases/download/1.24.1/docker-compose-$(uname -s)-$(uname -m) -o /usr/local/bin/docker-compose
+        sudo curl -L "https://github.com/docker/compose/releases/download/1.27.4/docker-compose-$(uname -s)-$(uname -m)" -o /usr/local/bin/docker-compose
         sudo chmod +x /usr/local/bin/docker-compose
         read -p "Do you want to install the bash-completion for docker-compose [Y/n]? " -n 1 -r
         if [[ $REPLY =~ ^[Yy]$ ]]
         then
-            sudo curl -L https://raw.githubusercontent.com/docker/compose/1.24.1/contrib/completion/bash/docker-compose -o /etc/bash_completion.d/docker-compose
+             sudo curl -L https://raw.githubusercontent.com/docker/compose/1.27.4/contrib/completion/bash/docker-compose -o /etc/bash_completion.d/docker-compose
         fi
         echo -e "${CGREEN}Finished installing docker-compose. Exiting now...${CEND}"
 	exit
